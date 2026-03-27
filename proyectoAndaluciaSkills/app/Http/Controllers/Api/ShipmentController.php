@@ -35,7 +35,7 @@ class ShipmentController extends Controller
 
         $waste = Waste::findOrFail($request->waste_id); //
         $enviadoAnteriormente = Shipment::where('waste_id', $waste->id)->sum('kilos_transported'); //
-        $stockDisponible = $waste->kilos - $enviadoAnteriormente; // Porque los fui metiendo cuando lo hice por primera vez, pero en el momento que pense en utilizar el proyecto para entrega digo, fernando va a pensar que sy gilipollas
+        $stockDisponible = $waste->kilos - $enviadoAnteriormente;   
 
         if ($request->kilos_transported > $stockDisponible) {
             return back()->withErrors(['kilos_transported' => "Stock insuficiente. Quedan {$stockDisponible}kg."])->withInput();

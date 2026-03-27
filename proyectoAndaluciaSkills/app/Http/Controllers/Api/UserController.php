@@ -30,4 +30,38 @@ class UserController extends Controller
         User::create($data);
         return redirect()->route('conductores.index')->with('success', 'Conductor creado');
     }
+
+    public function edit($id)
+    {
+        $usuario = User::findOrFail($id);
+        return view('usuarios.edit', compact('usuario'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $usuario = User::findOrFail($id);
+        
+        $data = $request->validate([
+            'name' => 'required|string',
+            'email' => 'required|email|unique:users,email,'.$id,
+            'phone' => 'nullable',
+            'license_type' => 'required'
+        ]);
+
+        $usuario->update($data);
+        return redirect()->route('conductores.index')->with('success', 'Datos del conductor actualizados.');
+    }
+
+    public function destroy($id)
+    {
+        $usuario = User::findOrFail($id);
+
+        // Seguridad: No permitimos que el usuario actual se elimine a sí mismo
+        if (auth()->id() == $usuario->id) {
+            return redirect()->back()->with('error', 'No puedes eliminar tu propia cuenta de usuario.');
+        }
+
+        $usuario->delete();
+        return redirect()->route('conductores.index')->with('success', 'Conductor eliminado correctamente.');
+    }
 }

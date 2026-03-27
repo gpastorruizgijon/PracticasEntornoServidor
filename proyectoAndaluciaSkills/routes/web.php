@@ -12,8 +12,12 @@ use App\Http\Controllers\Api\TruckController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WasteController;
 
+use App\Http\Controllers\DashboardController;
+
+
+
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth/register');
 });
 
 // 1. Ruta de Ofertas (la dejamos fuera o dentro según prefieras, mejor dentro si requiere login)
@@ -23,9 +27,9 @@ Route::get('/ofertas', [OfferController::class, 'index'])->name('offers.index');
 // Todo lo que esté aquí dentro sabrá QUIÉN es el usuario logueado
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
     // Rutas de Perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

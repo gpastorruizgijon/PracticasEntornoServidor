@@ -15,6 +15,7 @@ Route::apiResource('shipments', ShipmentController::class);
 Route::apiResource('wastes', WasteController::class);
 Route::apiResource('conductores', UserController::class);
 
+
 // Ruta para cargar los selects de conductores en el formulario de camiones
 Route::get('available-drivers', function() {
     return response()->json(User::all()); 

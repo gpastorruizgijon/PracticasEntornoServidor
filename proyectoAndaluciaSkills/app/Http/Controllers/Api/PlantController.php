@@ -20,11 +20,12 @@ class PlantController extends Controller
         $validated = $request->validate([
             'name' => 'required|string',
             'address' => 'required|string',
-            'city' => 'required|string',
+            'city' => 'string',
             'max_capacity_kg' => 'required|numeric',
         ]); //
         
         RecyclingPlant::create($validated); //
+
         return redirect()->route('plantas.index')->with('success', 'Planta creada con éxito.');
     }
 

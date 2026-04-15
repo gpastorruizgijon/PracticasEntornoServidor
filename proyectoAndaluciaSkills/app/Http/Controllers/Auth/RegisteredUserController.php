@@ -15,31 +15,47 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
+    // Clave predefinida que deben introducir los conductores al registrarse
+    const CONDUCTOR_PASSWORD = 'conductor2024';
+
     public function create(): View
     {
         return view('auth.register');
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws ValidationException
-     */
     public function store(Request $request): RedirectResponse
     {
+        $isConductor = $request->input('is_conductor') === '1';
+
+        // Campos comunes
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'name'  => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
         ]);
 
+        if ($isConductor) {
+            // Para conductores: validar clave predefinida de empresa
+            if ($request->input('password') !== self::CONDUCTOR_PASSWORD) {
+                throw ValidationException::withMessages([
+                    'password' => 'Clave de conductor incorrecta. Contacta con el administrador.',
+                ]);
+            }
+            $role     = 'conductor';
+            $password = self::CONDUCTOR_PASSWORD;
+        } else {
+            // Para usuarios normales: validar contraseña con reglas estándar
+            $request->validate([
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            ]);
+            $role     = 'user';
+            $password = $request->input('password');
+        }
+
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($password),
+            'role'     => $role,
         ]);
 
         event(new Registered($user));

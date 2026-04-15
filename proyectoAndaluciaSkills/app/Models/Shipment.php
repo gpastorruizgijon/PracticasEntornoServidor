@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory; 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Shipment extends Model
 {
-    use HasFactory; 
+    use HasFactory;
 
     protected $fillable = [
-        'waste_id', 'truck_id', 'recycling_plant_id', 
+        'truck_id', 'recycling_plant_id', 'type',
         'kilos_transported', 'pickup_date', 'delivery_date', 'status'
     ];
 
@@ -20,15 +21,18 @@ class Shipment extends Model
         'delivery_date' => 'datetime',
     ];
 
-    public function waste(): BelongsTo {
-        return $this->belongsTo(Waste::class)->withTrashed();
+    public function wastes(): HasMany
+    {
+        return $this->hasMany(Waste::class);
     }
 
-    public function truck(): BelongsTo {
+    public function truck(): BelongsTo
+    {
         return $this->belongsTo(Truck::class)->withTrashed();
     }
 
-    public function plant(): BelongsTo {
+    public function plant(): BelongsTo
+    {
         return $this->belongsTo(RecyclingPlant::class, 'recycling_plant_id')->withTrashed();
     }
 }

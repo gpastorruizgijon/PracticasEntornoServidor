@@ -1,27 +1,54 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Waste; // Asegúrate de importar tus modelos
-use App\Models\User;
+use App\Models\Shipment;
+use App\Models\Waste;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
+        $user = $this->currentUser();
 
-        if ($user->role === 'admin') {
-            // El Jefe ve todo
-            $residuos = Waste::all();
-            $totalConductores = User::where('role', 'conductor')->count();
-        } else {
-            // El Conductor solo ve sus residuos/envíos
-            // (Asumiendo que Waste tiene user_id)
-            $residuos = Waste::where('user_id', $user->id)->get();
-            $totalConductores = 1; 
+        // ── ADMIN ────────────────────────────────────────────────
+        if ($user->isAdmin()) {
+            $envios = Shipment::with(['wastes', 'truck', 'plant'])
+                ->latest('pickup_date')
+                ->limit(10)
+                ->get();
+
+            $misResiduos = Waste::where('user_id', $user->id)
+                ->with('shipment.plant')
+                ->latest()
+                ->get();
+
+            return view('dashboard', compact('envios', 'misResiduos'));
         }
 
-        return view('dashboard', compact('residuos', 'totalConductores'));
+        // ── CONDUCTOR ─────────────────────────────────────────────
+        if ($user->isConductor()) {
+            $envios = Shipment::whereHas('truck', fn($q) => $q->where('user_id', $user->id))
+                ->with(['wastes', 'truck', 'plant'])
+                ->latest('pickup_date')
+                ->get()
+                ->groupBy('status');
+
+            $misResiduos = Waste::where('user_id', $user->id)
+                ->with('shipment.plant')
+                ->latest()
+                ->get();
+
+            return view('dashboard', compact('envios', 'misResiduos'));
+        }
+
+        // ── USUARIO NORMAL ────────────────────────────────────────
+        $misResiduos = Waste::where('user_id', $user->id)
+            ->with('shipment.plant')
+            ->latest()
+            ->get();
+
+        return view('dashboard', compact('misResiduos'));
     }
 }

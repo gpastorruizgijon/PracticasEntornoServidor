@@ -4,9 +4,11 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Panel de Conductores') }}
             </h2>
-            <a href="{{ route('conductores.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 transition ease-in-out duration-150 shadow-sm">
-                Nuevo Conductor
-            </a>
+            @if(Auth::user()->isAdmin())
+                <a href="{{ route('conductores.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 transition ease-in-out duration-150 shadow-sm">
+                    Nuevo Conductor
+                </a>
+            @endif
         </div>
     </x-slot>
 
@@ -20,7 +22,9 @@
                             <th class="px-6 py-3 text-left text-xs font-bold uppercase">Email</th>
                             <th class="px-6 py-3 text-left text-xs font-bold uppercase">Teléfono</th>
                             <th class="px-6 py-3 text-left text-xs font-bold uppercase">Licencia</th>
-                            <th class="px-6 py-3 text-center text-xs font-bold uppercase">Acciones</th>
+                            @if(Auth::user()->isAdmin())
+                                <th class="px-6 py-3 text-center text-xs font-bold uppercase">Acciones</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -34,14 +38,17 @@
                                     {{ $usuario->license_type }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-center">
-                                <form action="{{ route('conductores.destroy', $usuario->id) }}" method="POST" class="inline">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900 font-bold" onclick="return confirm('¿Dar de baja a este conductor?')">
-                                        Dar de Baja
-                                    </button>
-                                </form>
-                            </td>
+                            @if(Auth::user()->isAdmin())
+                                <td class="px-6 py-4 text-center">
+                                    <form action="{{ route('conductores.destroy', $usuario->id) }}" method="POST" class="inline">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-900 font-bold"
+                                            onclick="return confirm('¿Dar de baja a este conductor?')">
+                                            Dar de Baja
+                                        </button>
+                                    </form>
+                                </td>
+                            @endif
                         </tr>
                         @endforeach
                     </tbody>

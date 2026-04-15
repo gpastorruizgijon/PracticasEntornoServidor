@@ -40,8 +40,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('plantas', PlantController::class);
     Route::resource('envios', ShipmentController::class);
     Route::resource('camiones', TruckController::class);
-    Route::resource('conductores', UserController::class);
-    Route::resource('usuarios', UserController::class);
+    Route::middleware('admin')->group(function () {
+        Route::resource('conductores', UserController::class);
+        Route::resource('usuarios', UserController::class);
+    });
     Route::resource('residuos', WasteController::class);
 });
 

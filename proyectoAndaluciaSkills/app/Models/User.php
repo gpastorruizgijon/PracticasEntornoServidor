@@ -16,9 +16,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
         'address',
         'phone',
-        'license_type'
+        'license_type',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -43,5 +44,11 @@ class User extends Authenticatable
     public function isConductor(): bool
     {
         return $this->role === 'conductor';
+    }
+
+    // Usuario normal: cualquier rol que no sea admin ni conductor
+    public function isUser(): bool
+    {
+        return !$this->isAdmin() && !$this->isConductor();
     }
 }

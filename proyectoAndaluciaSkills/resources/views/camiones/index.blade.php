@@ -4,9 +4,11 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Flota de Camiones') }}
             </h2>
-            <a href="{{ route('camiones.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
-                Añadir Camión
-            </a>
+            @if(Auth::user()->isAdmin())
+                <a href="{{ route('camiones.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
+                    Añadir Camión
+                </a>
+            @endif
         </div>
     </x-slot>
 
@@ -20,7 +22,9 @@
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Modelo</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Capacidad</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Conductor</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                            @if(Auth::user()->isAdmin())
+                                <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Acciones</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -36,13 +40,16 @@
                                     <span class="text-red-500 italic">Sin conductor</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-center">
-                                <a href="{{ route('camiones.edit', $camion->id) }}" class="text-yellow-600 hover:text-yellow-900 mr-3">Editar</a>
-                                <form action="{{ route('camiones.destroy', $camion->id) }}" method="POST" class="inline">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('¿Eliminar?')">Eliminar</button>
-                                </form>
-                            </td>
+                            @if(Auth::user()->isAdmin())
+                                <td class="px-6 py-4 text-center">
+                                    <a href="{{ route('camiones.edit', $camion->id) }}" class="text-yellow-600 hover:text-yellow-900 mr-3">Editar</a>
+                                    <form action="{{ route('camiones.destroy', $camion->id) }}" method="POST" class="inline">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-900"
+                                            onclick="return confirm('¿Eliminar?')">Eliminar</button>
+                                    </form>
+                                </td>
+                            @endif
                         </tr>
                         @endforeach
                     </tbody>

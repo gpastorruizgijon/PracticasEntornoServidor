@@ -107,6 +107,20 @@ public function run(): void
         'role' => 'admin',
     ]);
 
+    \App\Models\User::factory()->create([
+        'name' => 'Gines Conductor',
+        'email' => 'conductor@conductor.com',
+        'password' => bcrypt('123456'),
+        'role' => 'conductor',
+    ]);
+
+    \App\Models\User::factory()->create([
+        'name' => 'Gines Usuario',
+        'email' => 'usuario@usuario.com',
+        'password' => bcrypt('123456'),
+        'role' => 'user',
+    ]);
+
     // 2. Conductores (10)
     \App\Models\User::factory(10)->create(['role' => 'conductor']);
 
@@ -121,5 +135,10 @@ public function run(): void
 
     // 6. Envíos (Historial de logística)
     \App\Models\Shipment::factory(20)->create();
+
+    // 7. Residuos sin asignar (disponibles en dashboard)
+    \App\Models\Waste::factory(15)->create(['shipment_id' => null]);
 }
+
+// CONTRASEÑA PARA CONDUCTORES --> conductor2024
 }

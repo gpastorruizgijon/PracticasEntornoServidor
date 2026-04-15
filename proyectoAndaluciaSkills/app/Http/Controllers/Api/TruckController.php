@@ -8,38 +8,61 @@ use Illuminate\Http\Request;
 
 class TruckController extends Controller
 {
-    public function index() {
+    // Solo admin y conductor pueden ver la flota
+    public function index()
+    {
+        abort_if($this->isUser(), 403, 'Acceso no permitido.');
         $camiones = Truck::with('driver')->get();
         return view('camiones.index', compact('camiones'));
     }
 
-    public function create() {
-        $conductores = User::all();
+    public function create()
+    {
+        abort_unless($this->isAdmin(), 403, 'Acción no permitida.');
+        $conductores = User::where('role', 'conductor')->get();
         return view('camiones.create', compact('conductores'));
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
+        abort_unless($this->isAdmin(), 403, 'Acción no permitida.');
+
         $data = $request->validate([
-            'plate' => 'required|unique:trucks',
-            'model' => 'required',
-            'max_load_kg' => 'required|numeric',
-            'user_id' => 'required|exists:users,id'
+            'plate'       => 'required|unique:trucks',
+            'model'       => 'required',
+            'max_load_kg' => 'required|numeric|min:1',
+            'user_id'     => 'required|exists:users,id',
         ]);
+
         Truck::create($data);
         return redirect()->route('camiones.index')->with('success', 'Camión registrado');
     }
 
-    public function edit(Truck $camione) { // Laravel usa el nombre del recurso en singular
-        $conductores = User::all();
+    public function edit(Truck $camione)
+    {
+        abort_unless($this->isAdmin(), 403, 'Acción no permitida.');
+        $conductores = User::where('role', 'conductor')->get();
         return view('camiones.edit', compact('camione', 'conductores'));
     }
 
-    public function update(Request $request, Truck $camione) {
-        $camione->update($request->all());
+    public function update(Request $request, Truck $camione)
+    {
+        abort_unless($this->isAdmin(), 403, 'Acción no permitida.');
+
+        $data = $request->validate([
+            'plate'       => 'required|unique:trucks,plate,' . $camione->id,
+            'model'       => 'required',
+            'max_load_kg' => 'required|numeric|min:1',
+            'user_id'     => 'required|exists:users,id',
+        ]);
+
+        $camione->update($data);
         return redirect()->route('camiones.index')->with('success', 'Camión actualizado');
     }
 
-    public function destroy(Truck $camione) {
+    public function destroy(Truck $camione)
+    {
+        abort_unless($this->isAdmin(), 403, 'Acción no permitida.');
         $camione->delete();
         return redirect()->route('camiones.index')->with('success', 'Camión eliminado');
     }

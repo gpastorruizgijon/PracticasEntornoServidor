@@ -30,8 +30,10 @@ class UserFactory extends Factory
         'password' => static::$password ??= Hash::make('password'),
         'remember_token' => Str::random(10),
         // Añadimos esto para tu nueva columna de rol
-        'role' => fake()->randomElement(['admin', 'conductor', 'conductor', 'conductor']), 
+        'role'         => fake()->randomElement(['admin', 'conductor', 'conductor', 'conductor']),
         'license_type' => fake()->randomElement(['B', 'C', 'C+E']),
+        'phone'        => fake()->numerify('6########'),
+        'address'      => fake()->address(),
     ];
 }
 

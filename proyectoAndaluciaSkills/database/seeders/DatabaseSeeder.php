@@ -3,12 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Models\RecyclingPlant;
-use App\Models\Waste;
-use App\Models\Truck;
-use App\Models\Shipment;
-use Illuminate\Support\Facades\Hash;
+
 
 class DatabaseSeeder extends Seeder
 {
@@ -104,25 +99,27 @@ class DatabaseSeeder extends Seeder
 
 public function run(): void
 {
-    // 1. Creamos un Admin fijo para que tú puedas entrar siempre
-   // En DatabaseSeeder.php
-\App\Models\User::factory()->create([
-    'name' => 'Gines Jefe',
-    'email' => 'admin@admin.com',
-    'password' => bcrypt('123456'),
-    'role' => 'admin',
-    // NO PONGAS 'email_verified_at' AQUÍ SI NO EXISTE LA COLUMNA
-]);
-
-    // 2. Creamos 10 conductores aleatorios
-    \App\Models\User::factory(10)->create([
-        'role' => 'conductor'
+    // 1. Admin
+    \App\Models\User::factory()->create([
+        'name' => 'Gines Jefe',
+        'email' => 'admin@admin.com',
+        'password' => bcrypt('123456'),
+        'role' => 'admin',
     ]);
 
-    // 3. Creamos 5 plantas de reciclaje
+    // 2. Conductores (10)
+    \App\Models\User::factory(10)->create(['role' => 'conductor']);
+
+    // 3. Plantas (5)
     \App\Models\RecyclingPlant::factory(5)->create();
 
-    // 4. Creamos 30 cargas de residuos repartidas entre los conductores
+    // 4. Camiones (Asignar uno a cada conductor o crear 8 aleatorios)
+    \App\Models\Truck::factory(8)->create();
+
+    // 5. Residuos (30)
     \App\Models\Waste::factory(30)->create();
+
+    // 6. Envíos (Historial de logística)
+    \App\Models\Shipment::factory(20)->create();
 }
 }

@@ -12,19 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('shipments', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('waste_id')->constrained();
-    $table->foreignId('truck_id')->constrained();
-    $table->foreignId('recycling_plant_id')->constrained();
-    
-    $table->float('kilos_transported');
-    $table->dateTime('pickup_date');   // Fecha de recogida
-    $table->dateTime('delivery_date'); // Fecha de entrega
-    
-    // Estado del envío para el front
-    $table->enum('status', ['pending', 'in_transit', 'delivered'])->default('pending');
-    $table->timestamps();
-});
+            $table->id();
+            $table->foreignId('waste_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('truck_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('recycling_plant_id')->nullable()->constrained()->nullOnDelete();
+
+            $table->decimal('kilos_transported', 10, 2);
+            $table->dateTime('pickup_date');
+            $table->dateTime('delivery_date')->nullable(); // Puede no tener fecha de entrega al crearse
+
+            $table->enum('status', ['pending', 'in_transit', 'delivered'])->default('pending');
+            $table->timestamps();
+        });
     }
 
     /**

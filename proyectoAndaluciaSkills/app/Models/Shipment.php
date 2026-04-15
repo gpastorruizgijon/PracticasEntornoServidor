@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory; 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Shipment extends Model
 {
-    // Nota: Los envíos normalmente no se borran (soft delete), 
-    // se quedan como historial aunque la planta o el camión desaparezcan.
+    use HasFactory; 
 
     protected $fillable = [
         'waste_id', 'truck_id', 'recycling_plant_id', 

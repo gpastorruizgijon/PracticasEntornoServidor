@@ -22,6 +22,12 @@
                 </div>
             @endif
 
+            @if(session('error'))
+                <div class="bg-red-50 border border-red-300 text-red-800 rounded-lg px-4 py-3">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             @forelse($envios as $envio)
                 @php
                     $statusColor = match($envio->status) {
@@ -39,11 +45,13 @@
                         'in_transit' => 'En Tránsito',
                         default      => 'Pendiente',
                     };
+                    $canAdvance = Auth::user()->isAdmin()
+                        || (Auth::user()->isConductor() && $envio->truck?->user_id === Auth::id());
                 @endphp
 
                 <div class="bg-white shadow-sm rounded-lg border-l-4 {{ $statusColor }} overflow-hidden">
                     <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-4 flex-wrap">
                             <span class="text-xs font-bold uppercase px-3 py-1 rounded-full {{ $badgeColor }}">
                                 {{ $statusLabel }}
                             </span>
@@ -52,7 +60,8 @@
                                 {{ $envio->truck->plate ?? '—' }} · {{ $envio->plant->name ?? '—' }}
                             </span>
                         </div>
-                        <div class="flex items-center gap-6">
+
+                        <div class="flex items-center gap-4 flex-wrap">
                             <div class="text-right">
                                 <p class="text-xs text-gray-400">Recogida</p>
                                 <p class="text-sm font-medium">{{ $envio->pickup_date->format('d/m/Y') }}</p>
@@ -67,14 +76,50 @@
                                 <p class="text-xs text-gray-400">Total</p>
                                 <p class="font-mono font-bold text-gray-800">{{ number_format($envio->kilos_transported, 2) }} kg</p>
                             </div>
-                            @if(Auth::user()->isAdmin())
-                                <form action="{{ route('envios.destroy', $envio->id) }}" method="POST">
-                                    @csrf @method('DELETE')
-                                    <button class="text-red-500 hover:text-red-800 text-xs font-medium transition-colors"
-                                        onclick="return confirm('¿Anular este envío? Los residuos volverán a estar disponibles.')">
-                                        Anular
+
+                            {{-- Avanzar estado --}}
+                            @if($canAdvance && $envio->status !== 'delivered')
+                                <form action="{{ route('envios.status', $envio->id) }}" method="POST" class="inline">
+                                    @csrf @method('PATCH')
+                                    <button type="submit"
+                                        class="text-xs font-semibold px-3 py-1.5 rounded-full border transition
+                                            {{ $envio->status === 'pending'
+                                                ? 'border-yellow-400 text-yellow-700 hover:bg-yellow-100'
+                                                : 'border-blue-400 text-blue-700 hover:bg-blue-100' }}">
+                                        {{ $envio->status === 'pending' ? '▶ Iniciar trayecto' : '✓ Marcar entregado' }}
                                     </button>
                                 </form>
+                            @endif
+
+                            {{-- Anular (solo admin, con modal) --}}
+                            @if(Auth::user()->isAdmin())
+                                <div x-data="{ confirm: false }">
+                                    <button @click="confirm = true"
+                                        class="text-red-500 hover:text-red-800 text-xs font-medium transition-colors">
+                                        Anular
+                                    </button>
+                                    <div x-show="confirm" x-transition.opacity
+                                        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+                                        @keydown.escape.window="confirm = false">
+                                        <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4" @click.stop>
+                                            <p class="font-semibold text-gray-900 mb-1">¿Anular este envío?</p>
+                                            <p class="text-sm text-gray-500 mb-5">Los residuos volverán a estar disponibles. Esta acción no se puede deshacer.</p>
+                                            <div class="flex justify-end gap-2">
+                                                <button type="button" @click="confirm = false"
+                                                    class="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+                                                    Cancelar
+                                                </button>
+                                                <form action="{{ route('envios.destroy', $envio->id) }}" method="POST">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit"
+                                                        class="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700">
+                                                        Anular envío
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             @endif
                         </div>
                     </div>
@@ -104,6 +149,13 @@
                     @endif
                 </div>
             @endforelse
+
+            {{-- Paginación --}}
+            @if($envios->hasPages())
+                <div class="mt-4">
+                    {{ $envios->links() }}
+                </div>
+            @endif
 
         </div>
     </div>

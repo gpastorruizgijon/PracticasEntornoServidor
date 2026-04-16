@@ -7,15 +7,22 @@ use Illuminate\Support\Facades\Log;
 
 class ShipmentObserver
 {
-    public function created(Shipment $shipment): void
+    public function updated(Shipment $shipment): void
     {
-        if ($shipment->status === 'Entregado') {
+        if ($shipment->wasChanged('status') && $shipment->status === 'delivered') {
             $planta = $shipment->plant;
-            
-            $totalOcupado = $planta->shipments()->sum('kilos_transported');
+            if (!$planta) return;
 
-            if ($totalOcupado > $planta->max_capacity_kg) {
-                Log::warning("La planta {$planta->name} ha superado su capacidad máxima.");
+            $totalActivo = $planta->shipments()
+                ->whereIn('status', ['pending', 'in_transit'])
+                ->sum('kilos_transported');
+
+            if ($totalActivo > $planta->max_capacity_kg) {
+                Log::warning("La planta {$planta->name} ha superado su capacidad máxima.", [
+                    'plant_id'     => $planta->id,
+                    'capacity'     => $planta->max_capacity_kg,
+                    'current_load' => $totalActivo,
+                ]);
             }
         }
     }

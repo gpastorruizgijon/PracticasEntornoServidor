@@ -50,21 +50,29 @@
                         @error('kilos') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <div x-data="{ valid: null }">
+                    <div x-data="{ valid: null, msg: '' }"
+                         x-init="
+                            function check(v) {
+                                if (v.trim().length < 5) { msg = 'La dirección debe tener al menos 5 caracteres.'; return false; }
+                                if (!/[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ]/.test(v)) { msg = 'La dirección debe contener texto, no solo números.'; return false; }
+                                return true;
+                            }
+                         ">
                         <label for="origin_address" class="block font-medium text-sm text-gray-700">
                             Dirección de Origen <span class="text-red-500 ml-0.5" aria-hidden="true">*</span>
                         </label>
                         <input type="text" name="origin_address" id="origin_address"
                             value="{{ old('origin_address') }}"
                             placeholder="Ej: Calle Industrial 123, Polígono Norte"
-                            @blur="valid = $event.target.value.trim().length >= 5"
-                            @input="if (valid !== null) valid = $event.target.value.trim().length >= 5"
+                            @blur="valid = check($event.target.value)"
+                            @input="if (valid !== null) valid = check($event.target.value)"
                             class="mt-1 block w-full rounded-md shadow-sm transition-colors"
                             :class="valid === false ? 'border-red-400 focus:border-red-500 focus:ring-red-500'
                                   : valid === true  ? 'border-green-400 focus:border-green-500 focus:ring-green-500'
                                   : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'"
                             required>
-                        <p x-show="valid === false" x-transition class="text-red-500 text-xs mt-1">Indica una dirección completa (mínimo 5 caracteres).</p>
+                        <p class="text-gray-500 text-xs mt-1">Ej: Calle Mayor 5, Polígono Industrial Norte</p>
+                        <p x-show="valid === false" x-transition class="text-red-500 text-xs mt-1" x-text="msg"></p>
                         <p x-show="valid === true" x-transition class="text-green-600 text-xs mt-1">&#10003; Dirección válida</p>
                         @error('origin_address') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>

@@ -13,40 +13,42 @@
                 <form action="{{ route('plantas.store') }}" method="POST" class="space-y-6">
                     @csrf
 
-                    <div x-data="{ valid: null }">
+                    <div x-data="{ valid: null }"
+                         x-init="function check(v){ return v.trim().length >= 2 && /[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ]/.test(v) && !/\d/.test(v) }">
                         <label for="name" class="block font-medium text-sm text-gray-700">
                             Nombre de la Instalación <span class="text-red-500 ml-0.5" aria-hidden="true">*</span>
                         </label>
                         <input type="text" name="name" id="name"
                             value="{{ old('name') }}"
                             placeholder="Ej: Planta Central de Andalucía"
-                            @blur="valid = $event.target.value.trim().length >= 2"
-                            @input="if (valid !== null) valid = $event.target.value.trim().length >= 2"
+                            @blur="valid = check($event.target.value)"
+                            @input="if (valid !== null) valid = check($event.target.value)"
                             class="mt-1 block w-full rounded-md shadow-sm transition-colors"
                             :class="valid === false ? 'border-red-400 focus:border-red-500 focus:ring-red-500'
                                   : valid === true  ? 'border-green-400 focus:border-green-500 focus:ring-green-500'
                                   : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'"
                             required autofocus>
-                        <p x-show="valid === false" x-transition class="text-red-500 text-xs mt-1">El nombre debe tener al menos 2 caracteres.</p>
+                        <p x-show="valid === false" x-transition class="text-red-500 text-xs mt-1">El nombre solo puede contener letras y espacios, sin números.</p>
                         <p x-show="valid === true" x-transition class="text-green-600 text-xs mt-1">&#10003; Correcto</p>
                         @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <div x-data="{ valid: null }">
+                    <div x-data="{ valid: null }"
+                         x-init="function check(v){ return v.trim().length >= 2 && /[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ]/.test(v) && !/\d/.test(v) }">
                         <label for="city" class="block font-medium text-sm text-gray-700">
                             Ciudad / Ubicación <span class="text-red-500 ml-0.5" aria-hidden="true">*</span>
                         </label>
                         <input type="text" name="city" id="city"
                             value="{{ old('city') }}"
                             placeholder="Ej: Sevilla"
-                            @blur="valid = $event.target.value.trim().length >= 2"
-                            @input="if (valid !== null) valid = $event.target.value.trim().length >= 2"
+                            @blur="valid = check($event.target.value)"
+                            @input="if (valid !== null) valid = check($event.target.value)"
                             class="mt-1 block w-full rounded-md shadow-sm transition-colors"
                             :class="valid === false ? 'border-red-400 focus:border-red-500 focus:ring-red-500'
                                   : valid === true  ? 'border-green-400 focus:border-green-500 focus:ring-green-500'
                                   : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'"
                             required>
-                        <p x-show="valid === false" x-transition class="text-red-500 text-xs mt-1">La ciudad debe tener al menos 2 caracteres.</p>
+                        <p x-show="valid === false" x-transition class="text-red-500 text-xs mt-1">La ciudad solo puede contener letras, sin números (Ej: Sevilla).</p>
                         <p x-show="valid === true" x-transition class="text-green-600 text-xs mt-1">&#10003; Correcto</p>
                         @error('city') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>

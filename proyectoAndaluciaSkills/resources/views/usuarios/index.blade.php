@@ -14,6 +14,19 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+
+            @if(session('success'))
+                <div class="mb-4 bg-green-50 border border-green-300 text-green-800 rounded-lg px-4 py-3">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="mb-4 bg-red-50 border border-red-300 text-red-800 rounded-lg px-4 py-3">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 text-gray-700">
@@ -40,13 +53,38 @@
                             </td>
                             @if(Auth::user()->isAdmin())
                                 <td class="px-6 py-4 text-center">
-                                    <form action="{{ route('conductores.destroy', $usuario->id) }}" method="POST" class="inline">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900 font-bold"
-                                            onclick="return confirm('¿Dar de baja a este conductor?')">
+                                    <a href="{{ route('conductores.edit', $usuario->id) }}"
+                                        class="text-yellow-600 hover:text-yellow-900 font-semibold text-sm mr-3">
+                                        Editar
+                                    </a>
+
+                                    <div class="inline-block" x-data="{ confirm: false }">
+                                        <button @click="confirm = true"
+                                            class="text-red-600 hover:text-red-900 font-bold text-sm">
                                             Dar de Baja
                                         </button>
-                                    </form>
+                                        <div x-show="confirm" x-transition.opacity
+                                            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+                                            @keydown.escape.window="confirm = false">
+                                            <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4" @click.stop>
+                                                <p class="font-semibold text-gray-900 mb-1">¿Dar de baja a {{ $usuario->name }}?</p>
+                                                <p class="text-sm text-gray-500 mb-5">El conductor quedará desactivado. Esta acción no se puede deshacer fácilmente.</p>
+                                                <div class="flex justify-end gap-2">
+                                                    <button type="button" @click="confirm = false"
+                                                        class="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+                                                        Cancelar
+                                                    </button>
+                                                    <form action="{{ route('conductores.destroy', $usuario->id) }}" method="POST">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit"
+                                                            class="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700">
+                                                            Dar de Baja
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
                             @endif
                         </tr>

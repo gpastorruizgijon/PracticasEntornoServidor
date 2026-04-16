@@ -12,7 +12,7 @@ class TruckController extends Controller
     public function index()
     {
         abort_if($this->isUser(), 403, 'Acceso no permitido.');
-        $camiones = Truck::with('driver')->get();
+        $camiones = Truck::with('driver')->paginate(15);
         return view('camiones.index', compact('camiones'));
     }
 
@@ -28,10 +28,15 @@ class TruckController extends Controller
         abort_unless($this->isAdmin(), 403, 'Acción no permitida.');
 
         $data = $request->validate([
-            'plate'       => 'required|unique:trucks',
-            'model'       => 'required',
-            'max_load_kg' => 'required|numeric|min:1',
+            'plate'       => ['required', 'unique:trucks', 'regex:/^\d{4}-?[A-Za-z]{3}$/'],
+            'model'       => ['required', 'string', 'min:2', 'max:80', 'regex:/[\p{L}]/u'],
+            'max_load_kg' => 'required|numeric|min:500|max:50000',
             'user_id'     => 'required|exists:users,id',
+        ], [
+            'plate.regex'     => 'La matrícula debe tener el formato 4 dígitos + 3 letras (Ej: 1234-BBB).',
+            'model.regex'     => 'El modelo debe contener letras, no puede ser solo números.',
+            'max_load_kg.min' => 'La carga mínima es 500 kg.',
+            'max_load_kg.max' => 'La carga máxima no puede superar 50.000 kg.',
         ]);
 
         Truck::create($data);
@@ -50,10 +55,15 @@ class TruckController extends Controller
         abort_unless($this->isAdmin(), 403, 'Acción no permitida.');
 
         $data = $request->validate([
-            'plate'       => 'required|unique:trucks,plate,' . $camione->id,
-            'model'       => 'required',
-            'max_load_kg' => 'required|numeric|min:1',
+            'plate'       => ['required', 'unique:trucks,plate,' . $camione->id, 'regex:/^\d{4}-?[A-Za-z]{3}$/'],
+            'model'       => ['required', 'string', 'min:2', 'max:80', 'regex:/[\p{L}]/u'],
+            'max_load_kg' => 'required|numeric|min:500|max:50000',
             'user_id'     => 'required|exists:users,id',
+        ], [
+            'plate.regex'     => 'La matrícula debe tener el formato 4 dígitos + 3 letras (Ej: 1234-BBB).',
+            'model.regex'     => 'El modelo debe contener letras, no puede ser solo números.',
+            'max_load_kg.min' => 'La carga mínima es 500 kg.',
+            'max_load_kg.max' => 'La carga máxima no puede superar 50.000 kg.',
         ]);
 
         $camione->update($data);

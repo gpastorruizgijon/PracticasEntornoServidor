@@ -29,15 +29,17 @@ class RegisteredUserController extends Controller
 
         // Campos comunes
         $request->validate([
-            'name'  => ['required', 'string', 'max:255'],
+            'name'  => ['required', 'string', 'min:2', 'max:100', 'regex:/^[\p{L}\s\'\-\.]+$/u'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+        ], [
+            'name.regex' => 'El nombre solo puede contener letras y espacios, sin números.',
         ]);
 
         if ($isConductor) {
             // Para conductores: validar clave predefinida de empresa
-            if ($request->input('password') !== self::CONDUCTOR_PASSWORD) {
+            if ($request->input('conductor_key') !== self::CONDUCTOR_PASSWORD) {
                 throw ValidationException::withMessages([
-                    'password' => 'Clave de conductor incorrecta. Contacta con el administrador.',
+                    'conductor_key' => 'Clave de conductor incorrecta. Contacta con el administrador.',
                 ]);
             }
             $role     = 'conductor';

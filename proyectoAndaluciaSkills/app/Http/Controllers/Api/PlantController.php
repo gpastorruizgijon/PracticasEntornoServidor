@@ -7,11 +7,15 @@ use Illuminate\Http\Request;
 
 class PlantController extends Controller
 {
-    // Solo admin y conductor pueden ver el listado de plantas
     public function index()
     {
         abort_if($this->isUser(), 403, 'Acceso no permitido.');
-        $plantas = RecyclingPlant::all();
+
+        $plantas = RecyclingPlant::withSum(
+            ['shipments as carga_activa_kg' => fn($q) => $q->whereIn('status', ['pending', 'in_transit'])],
+            'kilos_transported'
+        )->paginate(15);
+
         return view('plantas.index', compact('plantas'));
     }
 
@@ -26,9 +30,12 @@ class PlantController extends Controller
         abort_unless($this->isAdmin(), 403, 'Acción no permitida.');
 
         $validated = $request->validate([
-            'name'            => 'required|string',
-            'city'            => 'required|string',
-            'max_capacity_kg' => 'required|numeric|min:1',
+            'name'            => ['required', 'string', 'min:2', 'max:100', 'regex:/^[\p{L}\s\'\-\.]+$/u'],
+            'city'            => ['required', 'string', 'min:2', 'max:80',  'regex:/^[\p{L}\s\'\-\.]+$/u'],
+            'max_capacity_kg' => 'required|numeric|min:1|max:500000',
+        ], [
+            'name.regex' => 'El nombre solo puede contener letras, espacios y guiones.',
+            'city.regex' => 'La ciudad solo puede contener letras, espacios y guiones (sin números).',
         ]);
 
         RecyclingPlant::create($validated);
@@ -49,9 +56,12 @@ class PlantController extends Controller
 
         $planta = RecyclingPlant::findOrFail($id);
         $validated = $request->validate([
-            'name'            => 'required|string',
-            'city'            => 'required|string',
-            'max_capacity_kg' => 'required|numeric|min:1',
+            'name'            => ['required', 'string', 'min:2', 'max:100', 'regex:/^[\p{L}\s\'\-\.]+$/u'],
+            'city'            => ['required', 'string', 'min:2', 'max:80',  'regex:/^[\p{L}\s\'\-\.]+$/u'],
+            'max_capacity_kg' => 'required|numeric|min:1|max:9999999',
+        ], [
+            'name.regex' => 'El nombre solo puede contener letras, espacios y guiones.',
+            'city.regex' => 'La ciudad solo puede contener letras, espacios y guiones (sin números).',
         ]);
         $planta->update($validated);
 

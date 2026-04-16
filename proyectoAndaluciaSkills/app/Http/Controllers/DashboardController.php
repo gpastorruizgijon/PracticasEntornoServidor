@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Shipment;
 use App\Models\Waste;
+use App\Models\User;
+use App\Models\Truck;
 
 class DashboardController extends Controller
 {
@@ -24,7 +26,12 @@ class DashboardController extends Controller
                 ->latest()
                 ->get();
 
-            return view('dashboard', compact('envios', 'misResiduos'));
+            $todosUsuarios = User::select('id', 'name', 'email', 'role')
+                ->orderBy('role')
+                ->orderBy('name')
+                ->get();
+
+            return view('dashboard', compact('envios', 'misResiduos', 'todosUsuarios'));
         }
 
         // ── CONDUCTOR ─────────────────────────────────────────────
@@ -40,12 +47,14 @@ class DashboardController extends Controller
                 ->latest()
                 ->get();
 
-            return view('dashboard', compact('envios', 'misResiduos'));
+            $miCamion = Truck::where('user_id', $user->id)->first();
+
+            return view('dashboard', compact('envios', 'misResiduos', 'miCamion'));
         }
 
         // ── USUARIO NORMAL ────────────────────────────────────────
         $misResiduos = Waste::where('user_id', $user->id)
-            ->with('shipment.plant')
+            ->with(['shipment.plant', 'shipment.truck'])
             ->latest()
             ->get();
 

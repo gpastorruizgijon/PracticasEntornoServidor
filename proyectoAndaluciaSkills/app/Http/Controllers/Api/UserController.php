@@ -23,11 +23,15 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'         => 'required|string',
+            'name'         => ['required', 'string', 'min:2', 'max:100', 'regex:/^[\p{L}\s\'\-\.]+$/u'],
             'email'        => 'required|email|unique:users',
-            'phone'        => 'nullable',
-            'address'      => 'nullable',
+            'phone'        => ['nullable', 'regex:/^[6789]\d{8}$/'],
+            'address'      => ['nullable', 'string', 'min:5', 'regex:/[\p{L}]/u'],
             'license_type' => 'required|in:B,C,C+E',
+        ], [
+            'name.regex'    => 'El nombre solo puede contener letras y espacios, sin números.',
+            'phone.regex'   => 'El teléfono debe tener 9 dígitos y comenzar por 6, 7, 8 o 9.',
+            'address.regex' => 'La dirección debe contener texto, no solo números.',
         ]);
 
         $data['password'] = Hash::make('conductor2024');
@@ -48,10 +52,13 @@ class UserController extends Controller
         $usuario = User::findOrFail($id);
 
         $data = $request->validate([
-            'name'         => 'required|string',
+            'name'         => ['required', 'string', 'min:2', 'max:100', 'regex:/^[\p{L}\s\'\-\.]+$/u'],
             'email'        => 'required|email|unique:users,email,' . $id,
-            'phone'        => 'nullable',
+            'phone'        => ['nullable', 'regex:/^[6789]\d{8}$/'],
             'license_type' => 'required|in:B,C,C+E',
+        ], [
+            'name.regex'  => 'El nombre solo puede contener letras y espacios, sin números.',
+            'phone.regex' => 'El teléfono debe tener 9 dígitos y comenzar por 6, 7, 8 o 9.',
         ]);
 
         $usuario->update($data);

@@ -20,6 +20,33 @@
                 </div>
             @endif
 
+            @if(session('error'))
+                <div class="bg-red-50 border border-red-300 text-red-800 rounded-lg px-4 py-3">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            {{-- Filtro por tipo --}}
+            <form method="GET" action="{{ route('residuos.index') }}" class="flex items-center gap-3 flex-wrap">
+                <label class="text-sm font-medium text-gray-700">Filtrar por tipo:</label>
+                <select name="tipo"
+                    class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md text-sm shadow-sm"
+                    onchange="this.form.submit()">
+                    <option value="">Todos los tipos</option>
+                    @foreach($tipos as $tipo)
+                        <option value="{{ $tipo }}" {{ $tipoFiltro === $tipo ? 'selected' : '' }}>
+                            {{ $tipo }}
+                        </option>
+                    @endforeach
+                </select>
+                @if($tipoFiltro)
+                    <a href="{{ route('residuos.index') }}"
+                        class="text-xs text-indigo-600 hover:underline">
+                        ✕ Limpiar filtro
+                    </a>
+                @endif
+            </form>
+
             {{-- ===== DISPONIBLES ===== --}}
             <section>
                 <h3 class="text-base font-bold text-gray-700 uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -72,11 +99,33 @@
                                                 @if(Auth::user()->isAdmin())
                                                     <a href="{{ route('residuos.edit', $r->id) }}"
                                                         class="text-yellow-600 hover:text-yellow-800 text-xs font-semibold">Editar</a>
-                                                    <form action="{{ route('residuos.destroy', $r->id) }}" method="POST" class="inline">
-                                                        @csrf @method('DELETE')
-                                                        <button type="submit" class="text-red-500 hover:text-red-800 text-xs font-semibold"
-                                                            onclick="return confirm('¿Borrar esta carga?')">Borrar</button>
-                                                    </form>
+                                                    <div x-data="{ confirm: false }">
+                                                        <button @click="confirm = true"
+                                                            class="text-red-500 hover:text-red-800 text-xs font-semibold">
+                                                            Borrar
+                                                        </button>
+                                                        <div x-show="confirm" x-transition.opacity
+                                                            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+                                                            @keydown.escape.window="confirm = false">
+                                                            <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4" @click.stop>
+                                                                <p class="font-semibold text-gray-900 mb-1">¿Borrar esta carga?</p>
+                                                                <p class="text-sm text-gray-500 mb-5">{{ $r->type }} — {{ $r->kilos }} kg. Esta acción no se puede deshacer.</p>
+                                                                <div class="flex justify-end gap-2">
+                                                                    <button type="button" @click="confirm = false"
+                                                                        class="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+                                                                        Cancelar
+                                                                    </button>
+                                                                    <form action="{{ route('residuos.destroy', $r->id) }}" method="POST">
+                                                                        @csrf @method('DELETE')
+                                                                        <button type="submit"
+                                                                            class="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700">
+                                                                            Borrar
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 @endif
                                             </div>
                                         </div>

@@ -39,6 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // --- TUS RECURSOS AHORA DENTRO DE AUTH  Gracias Gemini, pero sigue roto :) ES TOCHO, NO ME ESPERBA TANTO MIRA MIRA---
     Route::resource('plantas', PlantController::class);
     Route::resource('envios', ShipmentController::class);
+    Route::patch('envios/{envio}/status', [ShipmentController::class, 'updateStatus'])->name('envios.status');
     Route::resource('camiones', TruckController::class);
     Route::middleware('admin')->group(function () {
         Route::resource('conductores', UserController::class);

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Registrar Nuevo Conductor') }}
+            {{ __('Editar Conductor') }}
         </h2>
     </x-slot>
 
@@ -10,8 +10,9 @@
             <div class="bg-white p-8 shadow-sm sm:rounded-lg">
                 <p class="text-xs text-gray-500 mb-6"><span class="text-red-500">*</span> Campos obligatorios</p>
 
-                <form action="{{ route('conductores.store') }}" method="POST" class="space-y-6">
+                <form action="{{ route('conductores.update', $usuario->id) }}" method="POST" class="space-y-6">
                     @csrf
+                    @method('PUT')
 
                     <div x-data="{ valid: null }"
                          x-init="function check(v){ return v.trim().length >= 2 && /[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ]/.test(v) && !/\d/.test(v) }">
@@ -19,7 +20,7 @@
                             Nombre Completo <span class="text-red-500 ml-0.5" aria-hidden="true">*</span>
                         </label>
                         <input type="text" name="name" id="name"
-                            value="{{ old('name') }}"
+                            value="{{ old('name', $usuario->name) }}"
                             placeholder="Ej: Juan García López"
                             @blur="valid = check($event.target.value)"
                             @input="if (valid !== null) valid = check($event.target.value)"
@@ -28,9 +29,7 @@
                                   : valid === true  ? 'border-green-400 focus:border-green-500 focus:ring-green-500'
                                   : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'"
                             required>
-                        <p class="text-gray-500 text-xs mt-1">Solo letras y espacios, sin números.</p>
                         <p x-show="valid === false" x-transition class="text-red-500 text-xs mt-1">El nombre solo puede contener letras, sin números.</p>
-                        <p x-show="valid === true" x-transition class="text-green-600 text-xs mt-1">&#10003; Correcto</p>
                         @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
@@ -39,7 +38,7 @@
                             Correo Electrónico <span class="text-red-500 ml-0.5" aria-hidden="true">*</span>
                         </label>
                         <input type="email" name="email" id="email"
-                            value="{{ old('email') }}"
+                            value="{{ old('email', $usuario->email) }}"
                             placeholder="Ej: conductor@empresa.com"
                             @blur="valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($event.target.value.trim())"
                             @input="if (valid !== null) valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($event.target.value.trim())"
@@ -48,9 +47,7 @@
                                   : valid === true  ? 'border-green-400 focus:border-green-500 focus:ring-green-500'
                                   : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'"
                             required>
-                        <p class="text-gray-500 text-xs mt-1">Formato: nombre@dominio.com</p>
-                        <p x-show="valid === false" x-transition class="text-red-500 text-xs mt-1">El formato del correo no es válido (Ej: usuario@dominio.com).</p>
-                        <p x-show="valid === true" x-transition class="text-green-600 text-xs mt-1">&#10003; Correo válido</p>
+                        <p x-show="valid === false" x-transition class="text-red-500 text-xs mt-1">El formato del correo no es válido.</p>
                         @error('email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
@@ -62,11 +59,11 @@
                             class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                             required>
                             <option value="">Selecciona una licencia...</option>
-                            <option value="B" {{ old('license_type') === 'B' ? 'selected' : '' }}>Clase B — Vehículos ligeros</option>
-                            <option value="C" {{ old('license_type') === 'C' ? 'selected' : '' }}>Clase C — Camiones rígidos</option>
-                            <option value="C+E" {{ old('license_type') === 'C+E' ? 'selected' : '' }}>Clase C+E — Tráiler / Semirremolque</option>
+                            <option value="B"   {{ old('license_type', $usuario->license_type) === 'B'   ? 'selected' : '' }}>Clase B — Vehículos ligeros</option>
+                            <option value="C"   {{ old('license_type', $usuario->license_type) === 'C'   ? 'selected' : '' }}>Clase C — Camiones rígidos</option>
+                            <option value="C+E" {{ old('license_type', $usuario->license_type) === 'C+E' ? 'selected' : '' }}>Clase C+E — Tráiler / Semirremolque</option>
                         </select>
-                        <p class="text-gray-500 text-xs mt-1">La licencia C+E es necesaria para camiones con remolque.</p>
+                        <p class="text-gray-500 text-xs mt-1">La licencia C+E es necesaria para transportar residuos peligrosos.</p>
                         @error('license_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
@@ -76,7 +73,7 @@
                             <span class="text-gray-400 font-normal text-xs">(opcional)</span>
                         </label>
                         <input type="text" name="phone" id="phone"
-                            value="{{ old('phone') }}"
+                            value="{{ old('phone', $usuario->phone) }}"
                             placeholder="Ej: 612345678"
                             @blur="valid = $event.target.value === '' ? null : /^[6789]\d{8}$/.test($event.target.value.trim())"
                             @input="if (valid !== null) valid = $event.target.value === '' ? null : /^[6789]\d{8}$/.test($event.target.value.trim())"
@@ -84,9 +81,8 @@
                             :class="valid === false ? 'border-red-400 focus:border-red-500 focus:ring-red-500'
                                   : valid === true  ? 'border-green-400 focus:border-green-500 focus:ring-green-500'
                                   : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'">
-                        <p class="text-gray-500 text-xs mt-1">9 dígitos, comenzando por 6, 7, 8 o 9 (móvil o fijo español).</p>
+                        <p class="text-gray-500 text-xs mt-1">9 dígitos, comenzando por 6, 7, 8 o 9.</p>
                         <p x-show="valid === false" x-transition class="text-red-500 text-xs mt-1">Formato incorrecto. Introduce 9 dígitos comenzando por 6, 7, 8 o 9.</p>
-                        <p x-show="valid === true" x-transition class="text-green-600 text-xs mt-1">&#10003; Teléfono válido</p>
                         @error('phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
@@ -100,7 +96,7 @@
                         </a>
                         <button type="submit"
                             class="inline-flex justify-center items-center px-6 py-3 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 shadow-md transition duration-150">
-                            Guardar Conductor
+                            Guardar Cambios
                         </button>
                     </div>
                 </form>

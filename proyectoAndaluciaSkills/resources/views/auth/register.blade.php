@@ -63,9 +63,9 @@
             <div class="mt-4">
                 <x-input-label for="conductor_password" value="Clave de acceso de conductor" />
                 <x-text-input id="conductor_password" class="block mt-1 w-full" type="password"
-                    name="password" autocomplete="off" />
+                    name="conductor_key" autocomplete="off" />
                 <p class="mt-1 text-xs text-gray-500">Introduce la clave proporcionada por la empresa. Si no la tienes, contacta con el administrador.</p>
-                <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                <x-input-error :messages="$errors->get('conductor_key')" class="mt-2" />
             </div>
         </div>
 

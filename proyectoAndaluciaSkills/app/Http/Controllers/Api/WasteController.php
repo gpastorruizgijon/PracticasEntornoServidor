@@ -9,29 +9,37 @@ use Illuminate\Support\Facades\Auth;
 
 class WasteController extends Controller
 {
-    // Usuarios normales son redirigidos al dashboard (sus residuos están allí)
-    public function index()
+    public function index(Request $request)
     {
         if ($this->isUser()) {
             return redirect()->route('dashboard');
         }
 
-        $disponibles = Waste::whereNull('shipment_id')
-            ->whereNull('deleted_at')
-            ->get()
-            ->groupBy('type');
+        $tipoFiltro = $request->get('tipo');
 
-        $enTransito = Waste::whereHas('shipment', fn($q) => $q->where('status', 'in_transit'))
-            ->with('shipment.plant')
-            ->whereNull('deleted_at')
-            ->get();
+        // SoftDeletes global scope excluye deleted_at automáticamente
+        $disponiblesQuery = Waste::whereNull('shipment_id');
+        if ($tipoFiltro) {
+            $disponiblesQuery->where('type', $tipoFiltro);
+        }
+        $disponibles = $disponiblesQuery->get()->groupBy('type');
 
-        $entregados = Waste::whereHas('shipment', fn($q) => $q->where('status', 'delivered'))
-            ->with('shipment.plant')
-            ->whereNull('deleted_at')
-            ->get();
+        $enTransitoQuery = Waste::whereHas('shipment', fn($q) => $q->where('status', 'in_transit'))
+            ->with('shipment.plant');
+        if ($tipoFiltro) {
+            $enTransitoQuery->where('type', $tipoFiltro);
+        }
+        $enTransito = $enTransitoQuery->get();
 
-        return view('residuos.index', compact('disponibles', 'enTransito', 'entregados'));
+        $entregadosQuery = Waste::whereHas('shipment', fn($q) => $q->where('status', 'delivered'))
+            ->with('shipment.plant');
+        if ($tipoFiltro) {
+            $entregadosQuery->where('type', $tipoFiltro);
+        }
+        $entregados = $entregadosQuery->get();
+
+        $tipos = Waste::TYPES;
+        return view('residuos.index', compact('disponibles', 'enTransito', 'entregados', 'tipoFiltro', 'tipos'));
     }
 
     public function create()
@@ -44,9 +52,13 @@ class WasteController extends Controller
     {
         $data = $request->validate([
             'type'           => 'required|in:' . implode(',', Waste::TYPES),
-            'kilos'          => 'required|numeric|min:0.1',
-            'origin_address' => 'required|string',
+            'kilos'          => 'required|numeric|min:0.1|max:99999',
+            'origin_address' => ['required', 'string', 'min:5', 'regex:/[\p{L}]/u'],
             'is_hazardous'   => 'boolean',
+        ], [
+            'origin_address.regex' => 'La dirección debe contener texto, no solo números.',
+            'origin_address.min'   => 'La dirección debe tener al menos 5 caracteres.',
+            'kilos.max'            => 'El peso no puede superar 99.999 kg.',
         ]);
 
         $data['user_id']      = Auth::id();
@@ -54,7 +66,6 @@ class WasteController extends Controller
 
         Waste::create($data);
 
-        // Usuarios normales vuelven a su dashboard; admin y conductor al listado
         $redirect = $this->isUser()
             ? route('dashboard')
             : route('residuos.index');
@@ -62,7 +73,6 @@ class WasteController extends Controller
         return redirect($redirect)->with('success', 'Residuo registrado correctamente.');
     }
 
-    // Solo admin puede editar o borrar residuos
     public function edit(Waste $residuo)
     {
         abort_unless($this->isAdmin(), 403, 'Acción no permitida.');
@@ -76,9 +86,13 @@ class WasteController extends Controller
 
         $data = $request->validate([
             'type'           => 'required|in:' . implode(',', Waste::TYPES),
-            'kilos'          => 'required|numeric|min:0.1',
-            'origin_address' => 'required|string',
+            'kilos'          => 'required|numeric|min:0.1|max:99999',
+            'origin_address' => ['required', 'string', 'min:5', 'regex:/[\p{L}]/u'],
             'is_hazardous'   => 'boolean',
+        ], [
+            'origin_address.regex' => 'La dirección debe contener texto, no solo números.',
+            'origin_address.min'   => 'La dirección debe tener al menos 5 caracteres.',
+            'kilos.max'            => 'El peso no puede superar 99.999 kg.',
         ]);
         $data['is_hazardous'] = $request->boolean('is_hazardous');
 

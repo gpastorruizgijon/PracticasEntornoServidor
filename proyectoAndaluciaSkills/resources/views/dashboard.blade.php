@@ -20,6 +20,12 @@
                 </div>
             @endif
 
+            @if(session('error'))
+                <div class="mb-6 bg-red-50 border border-red-300 text-red-800 rounded-lg px-4 py-3">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             {{-- ═══════════════════════════════════════════════════════ --}}
             {{--  PANEL ADMIN                                            --}}
             {{-- ═══════════════════════════════════════════════════════ --}}
@@ -93,6 +99,50 @@
                     </div>
                 @endif
 
+                {{-- Todos los usuarios registrados --}}
+                <div class="bg-white rounded-lg shadow mb-8 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="text-base font-bold text-gray-800">Usuarios Registrados</h3>
+                        <span class="text-xs text-gray-400">{{ $todosUsuarios->count() }} en total</span>
+                    </div>
+                    <div class="p-4">
+                        <table class="min-w-full divide-y divide-gray-100 text-sm">
+                            <thead>
+                                <tr class="text-xs text-gray-500 uppercase">
+                                    <th class="px-4 py-2 text-left font-semibold">Nombre</th>
+                                    <th class="px-4 py-2 text-left font-semibold">Email</th>
+                                    <th class="px-4 py-2 text-left font-semibold">Rol</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                @foreach($todosUsuarios as $u)
+                                    @php
+                                        $rolColor = match($u->role) {
+                                            'admin'     => 'bg-red-100 text-red-700',
+                                            'conductor' => 'bg-blue-100 text-blue-700',
+                                            default     => 'bg-gray-100 text-gray-600',
+                                        };
+                                        $rolLabel = match($u->role) {
+                                            'admin'     => 'Admin',
+                                            'conductor' => 'Conductor',
+                                            default     => 'Usuario',
+                                        };
+                                    @endphp
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-2 font-medium text-gray-800">{{ $u->name }}</td>
+                                        <td class="px-4 py-2 text-gray-500">{{ $u->email }}</td>
+                                        <td class="px-4 py-2">
+                                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $rolColor }}">
+                                                {{ $rolLabel }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 {{-- Envíos recientes --}}
                 @if($envios->isNotEmpty())
                     <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -133,22 +183,66 @@
             {{-- ═══════════════════════════════════════════════════════ --}}
             {{--  PANEL CONDUCTOR                                         --}}
             {{-- ═══════════════════════════════════════════════════════ --}}
+            
             @elseif(Auth::user()->role === 'conductor')
 
                 @php
+                    $user=Auth::user();
                     $pendientes = $envios->get('pending',    collect());
                     $enTransito = $envios->get('in_transit', collect());
                     $entregados = $envios->get('delivered',  collect());
                 @endphp
 
                 {{-- Banner bienvenida --}}
-                <div class="bg-indigo-700 p-8 rounded-lg shadow-lg text-white mb-8">
+                <div class="bg-indigo-700 p-8 rounded-lg shadow-lg text-white mb-4">
                     <h3 class="text-3xl font-bold">Bienvenido, {{ Auth::user()->name }}</h3>
                     <div class="mt-2 flex gap-6 opacity-90 text-sm">
                         <span>{{ $pendientes->count() + $enTransito->count() }} envíos activos</span>
                         <span>{{ $entregados->count() }} entregados</span>
                     </div>
                 </div>
+
+                {{-- Tarjeta de perfil --}}
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5 mb-6 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xl shrink-0">
+                        {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-gray-900 truncate">{{ $user->name }}</p>
+                        <p class="text-sm text-gray-500 truncate">{{ $user->email }}</p>
+                        <div class="flex flex-wrap gap-4 mt-1 text-xs text-gray-500">
+                            <span>Licencia: <strong class="text-gray-700">{{ $user->license_type ?? 'N/A' }}</strong></span>
+                            <span>Teléfono: <strong class="text-gray-700">{{ $user->phone ?? 'N/A' }}</strong></span>
+                        </div>
+                    </div>
+                    <a href="{{ route('profile.edit') }}"
+                        class="text-xs text-indigo-600 hover:underline shrink-0">
+                        Editar perfil →
+                    </a>
+                </div>
+
+                {{-- Camión asignado --}}
+                @if($miCamion)
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5 mb-6 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs text-gray-400 uppercase font-semibold tracking-wide mb-0.5">Mi Vehículo Asignado</p>
+                            <p class="font-semibold text-gray-900">{{ $miCamion->model }}</p>
+                            <div class="flex flex-wrap gap-4 mt-1 text-xs text-gray-500">
+                                <span>Matrícula: <strong class="text-gray-700">{{ $miCamion->plate }}</strong></span>
+                                <span>Carga máx.: <strong class="text-gray-700">{{ number_format($miCamion->max_load_kg, 0) }} kg</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-sm text-yellow-700">
+                        No tienes ningún vehículo asignado. Contacta con el administrador.
+                    </div>
+                @endif
 
                 {{-- Botón crear carga --}}
                 <div class="mb-6">
@@ -323,6 +417,11 @@
                                                 @if($r->shipment?->pickup_date)
                                                     <p class="text-xs text-yellow-600">Fecha de recogida: {{ $r->shipment->pickup_date->format('d/m/Y') }}</p>
                                                 @endif
+                                                @if($r->shipment?->truck)
+                                                    <p class="text-xs text-yellow-700 font-medium">
+                                                        Camión: {{ $r->shipment->truck->model }} ({{ $r->shipment->truck->plate }})
+                                                    </p>
+                                                @endif
                                             </div>
                                         </div>
                                         <span class="font-mono text-sm font-bold text-gray-600">{{ $r->kilos }} kg</span>
@@ -352,6 +451,11 @@
                                                 @endif
                                                 @if($r->shipment?->pickup_date)
                                                     <p class="text-xs text-blue-500">Recogida: {{ $r->shipment->pickup_date->format('d/m/Y') }}</p>
+                                                @endif
+                                                @if($r->shipment?->truck)
+                                                    <p class="text-xs text-blue-700 font-medium">
+                                                        Camión: {{ $r->shipment->truck->model }} ({{ $r->shipment->truck->plate }})
+                                                    </p>
                                                 @endif
                                             </div>
                                         </div>

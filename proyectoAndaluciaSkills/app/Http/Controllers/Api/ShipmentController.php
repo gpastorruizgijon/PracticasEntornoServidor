@@ -29,7 +29,7 @@ class ShipmentController extends Controller
             ->get()
             ->groupBy('type');
 
-        $camiones = Truck::with('driver')->get();
+        $camiones = Truck::with('driver')->whereNotNull('user_id')->get();
         $plantas  = RecyclingPlant::all();
 
         return view('envios.create', compact('tipos', 'residuosDisponibles', 'camiones', 'plantas'));

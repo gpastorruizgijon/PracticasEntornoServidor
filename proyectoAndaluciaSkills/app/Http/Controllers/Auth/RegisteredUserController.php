@@ -54,15 +54,20 @@ class RegisteredUserController extends Controller
         }
 
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($password),
-            'role'     => $role,
+            'name'                => $request->name,
+            'email'               => $request->email,
+            'password'            => Hash::make($password),
+            'role'                => $role,
+            'must_change_password' => $isConductor,
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
+
+        if ($isConductor) {
+            return redirect(route('profile.edit') . '#password');
+        }
 
         return redirect(route('dashboard', absolute: false));
     }

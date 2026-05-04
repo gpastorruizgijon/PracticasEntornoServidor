@@ -107,7 +107,7 @@
                             <option value="">Selecciona un camión...</option>
                             @foreach($camiones as $c)
                                 <option value="{{ $c->id }}">
-                                    {{ $c->plate }} — {{ $c->driver->name }} (máx. {{ $c->max_load_kg }} kg)
+                                    {{ $c->plate }} — {{ $c->driver?->name ?? 'Sin conductor' }} (máx. {{ $c->max_load_kg }} kg)
                                 </option>
                             @endforeach
                         </select>

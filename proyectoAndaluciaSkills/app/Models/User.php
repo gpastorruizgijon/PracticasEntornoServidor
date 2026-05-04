@@ -17,12 +17,17 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'must_change_password',
         'address',
         'phone',
         'license_type',
     ];
 
     protected $hidden = ['password', 'remember_token'];
+
+    protected $casts = [
+        'must_change_password' => 'boolean',
+    ];
 
     // Relación: Un conductor puede haber manejado muchos camiones
     public function trucks(): HasMany

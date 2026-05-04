@@ -25,7 +25,7 @@ Route::get('/ofertas', [OfferController::class, 'index'])->name('offers.index');
 
 // 2. Grupo Protegido por Breeze (AUTH)
 // Todo lo que esté aquí dentro sabrá QUIÉN es el usuario logueado
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'force.password'])->group(function () {
     
     Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
